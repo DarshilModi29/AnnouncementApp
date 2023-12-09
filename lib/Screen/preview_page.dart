@@ -1,15 +1,12 @@
-// import 'dart:convert';
-// import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:annoucement_form/models/data_model.dart';
 // import 'package:flutter/rendering.dart';
 import 'dart:async';
-// import 'dart:ui' as ui;
+import 'package:screenshot/screenshot.dart';
 
 class PreviewPage extends StatefulWidget {
   final String id;
-
-  const PreviewPage({Key? key, required this.id}) : super(key: key);
+  const PreviewPage({super.key, required this.id});
 
   @override
   State<PreviewPage> createState() => _PreviewPageState();
@@ -17,26 +14,7 @@ class PreviewPage extends StatefulWidget {
 
 class _PreviewPageState extends State<PreviewPage> {
   late Future<Map<String, dynamic>> previewData;
-  // GlobalKey _globalKey = GlobalKey();
-
-// Future<Uint8List?> _capturePng() async {
-//   try {
-//     print('inside');
-//     RenderRepaintBoundary boundary =
-//         _globalKey.currentContext.findRenderObject();
-//     ui.Image image = await boundary.toImage(pixelRatio: 3.0);
-//     ByteData byteData =
-//         await image.toByteData(format: ui.ImageByteFormat.png);
-//     var pngBytes = byteData.buffer.asUint8List();
-//     var bs64 = base64Encode(pngBytes);
-//     print(pngBytes);
-//     print(bs64);
-//     setState(() {});
-//     return pngBytes;
-//   } catch (e) {
-//     print(e);
-//   }
-// }
+  ScreenshotController screenshotController = ScreenshotController();
 
   @override
   void initState() {
@@ -46,56 +24,80 @@ class _PreviewPageState extends State<PreviewPage> {
 
   @override
   Widget build(BuildContext context) {
-    return RepaintBoundary(
-      // key: _globalKey,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text(
-            "Preview",
-            style: TextStyle(fontSize: 30),
-          ),
-        ),
-        floatingActionButton: FloatingActionButton(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
-          onPressed: () {},
-          tooltip: "Save to image",
-          child: const Icon(Icons.save),
-        ),
-        body: FutureBuilder(
-          future: previewData,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
-            } else if (snapshot.hasError) {
-              return Center(
-                child: Text('Error: ${snapshot.error}'),
-              );
-            } else {
-              Map<String, dynamic> data = snapshot.data as Map<String, dynamic>;
-              return Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 20),
-                    buildInfoRow(
-                        "Description", data['picdata']['description']!),
-                    buildInfoRow("Position", data['picdata']['position']!),
-                    buildInfoRow(
-                        "Requirements", data['picdata']['requirement']!),
-                    buildInfoRow("Salary Approx", data['picdata']['sapprox']!),
-                    buildInfoRow("Address", data['picdata']['address']!),
-                    buildInfoRow("Contact", data['picdata']['contacts']!),
-                  ],
-                ),
-              );
-            }
-          },
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          "Preview",
+          style: TextStyle(fontSize: 30),
         ),
       ),
+      body: FutureBuilder(
+        future: previewData,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          } else if (snapshot.hasError) {
+            return Center(
+              child: Text('Error: ${snapshot.error}'),
+            );
+          } else {
+            Map<String, dynamic> data = snapshot.data as Map<String, dynamic>;
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Container(
+                color: Colors.white,
+                child: Screenshot(
+                  controller: screenshotController,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 20),
+                      buildInfoRow(
+                          "Description", data['picdata']['description']!),
+                      buildInfoRow("Position", data['picdata']['position']!),
+                      buildInfoRow(
+                          "Requirements", data['picdata']['requirement']!),
+                      buildInfoRow(
+                          "Salary Approx", data['picdata']['sapprox']!),
+                      buildInfoRow("Address", data['picdata']['address']!),
+                      buildInfoRow("Contact", data['picdata']['contacts']!),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }
+        },
+      ),
+      persistentFooterButtons: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            ElevatedButton(
+              onPressed: () async {
+                await Future.delayed(const Duration(seconds: 1));
+                final image = await screenshotController.capture();
+
+                if (image == null) return;
+
+                await DataModel().saveImage(image);
+              },
+              child: const Icon(Icons.save),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                await Future.delayed(const Duration(seconds: 1));
+                final image = await screenshotController.capture();
+
+                await DataModel().shareImage(image!);
+              },
+              child: const Icon(Icons.share),
+            ),
+          ],
+        )
+      ],
     );
   }
 

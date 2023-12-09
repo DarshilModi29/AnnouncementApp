@@ -42,6 +42,12 @@ class _ContactpageState extends State<Contactpage> {
   }
 
   @override
+  void initState() {
+    EasyLoading.dismiss();
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return CustomScaffold(
       child: Column(

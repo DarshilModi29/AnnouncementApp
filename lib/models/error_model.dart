@@ -1,5 +1,5 @@
 class ErrorModel {
-  final String error;
+  final String? error;
   final dynamic data;
 
   ErrorModel({

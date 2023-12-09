@@ -15,7 +15,7 @@ class WelcomeScreen extends ConsumerWidget {
     final navigator = Navigator.of(context);
     final errorModel =
         await ref.read(authRepositoryProvider).signInWithGoogle();
-    if (errorModel.error == '') {
+    if (errorModel.error == null) {
       ref.read(userProvider.notifier).update((state) => errorModel.data);
       navigator.pushReplacement(
         MaterialPageRoute(
@@ -25,7 +25,7 @@ class WelcomeScreen extends ConsumerWidget {
     } else {
       sMessanger.showSnackBar(
         SnackBar(
-          content: Text(errorModel.error),
+          content: Text(errorModel.error ?? ""),
         ),
       );
     }
